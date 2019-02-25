@@ -1,6 +1,8 @@
 # flashcardify-infra
 Terraform infrastructure for flashcardify 
 
-## Client
 
-## Server
+## Resources
+### Client
+
+### Server
