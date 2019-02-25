@@ -1,2 +1,6 @@
 # flashcardify-infra
-Terraform infrastructure for flashcardify
+Terraform infrastructure for flashcardify 
+
+## Client
+
+## Server
