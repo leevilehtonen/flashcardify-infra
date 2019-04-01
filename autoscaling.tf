@@ -5,4 +5,5 @@ resource "aws_appautoscaling_target" "ecs_target" {
   role_arn           = "${aws_iam_role.task_autoscaling.arn}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
+  
 }

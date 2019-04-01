@@ -1,6 +1,4 @@
-variable "project-name" {
-  default = "flashcardify"
-}
+variable "project_name" {}
 
 variable "az_count" {
   description = "Number of AZs to cover in a given AWS region"
