@@ -13,6 +13,10 @@ variable "services" {
   type = "list"
 }
 
+variable "service_port" {
+  description = "Port where the service will run"
+}
+
 variable "task_count" {
   description = "Count of tasks running in one ECS service"
 }

@@ -120,14 +120,14 @@ resource "aws_security_group" "lb" {
 }
 
 resource "aws_security_group" "ecs_tasks" {
-  name   = "ecs-tasks-security-group"
+  count  = "${length(var.services)}"
+  name   = "${var.project_name}-${var.services[count.index]}-sg-${terraform.workspace}"
   vpc_id = "${aws_vpc.default.id}"
-
 
   ingress {
     protocol        = "tcp"
-    from_port       = "${data.template_file.container_definition.vars.port}"
-    to_port         = "${data.template_file.container_definition.vars.port}"
+    from_port       = "${var.service_port}"
+    to_port         = "${var.service_port}"
     security_groups = ["${aws_security_group.lb.id}"]
   }
 
@@ -139,7 +139,7 @@ resource "aws_security_group" "ecs_tasks" {
   }
 
   tags {
-    Name = "${var.project_name}-ecs-sg-${terraform.workspace}"
+    Name = "${var.project_name}-${var.services[count.index]}-sg-${terraform.workspace}"
     Env  = "${terraform.workspace}"
   }
 }

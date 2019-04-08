@@ -24,6 +24,8 @@ resource "aws_alb_target_group" "default" {
     Project = "${var.project_name}"
     Env     = "${terraform.workspace}"
   }
+
+  depends_on = ["aws_alb.default"]
 }
 
 resource "aws_alb_listener" "default" {

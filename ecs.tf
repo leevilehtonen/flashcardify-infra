@@ -4,7 +4,7 @@ resource "aws_ecs_cluster" "default" {
 
 resource "aws_ecr_repository" "default" {
   count = "${length(var.services)}"
-  name  = "${var.project_name}-${var.services[count.index]}-${terraform.workspace}"
+  name  = "${local.ecs_repository_names[count.index]}"
 }
 
 data "template_file" "container_definition" {
@@ -12,11 +12,11 @@ data "template_file" "container_definition" {
   count    = "${length(var.services)}"
 
   vars {
-    name = "${var.project_name}-${var.services[count.index]}-container-${terraform.workspace}"
-    port = 80
+    name  = "${local.ecs_container_names[count.index]}"
+    port  = "${var.service_port}"
+    image = "${aws_ecr_repository.default.*.repository_url[count.index]}"
 
-    //image  = "${aws_ecr_repository.default.*.repository_url[count.index]}"
-    image     = "nginxdemos/hello"
+    //image     = "nginxdemos/hello"
     cpu       = "${var.fargate_cpu}"
     memory    = "${var.fargate_memory}"
     log_group = "/ecs/${var.project_name}"
@@ -25,7 +25,7 @@ data "template_file" "container_definition" {
 
 resource "aws_ecs_task_definition" "default" {
   count                    = "${length(var.services)}"
-  family                   = "${var.project_name}-${var.services[count.index]}-task-${terraform.workspace}"
+  family                   = "${local.ecs_task_names[count.index]}"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "${var.fargate_cpu}"
@@ -36,21 +36,21 @@ resource "aws_ecs_task_definition" "default" {
 
 resource "aws_ecs_service" "default" {
   count           = "${length(var.services)}"
-  name            = "${var.project_name}-${var.services[count.index]}-service-${terraform.workspace}"
+  name            = "${local.ecs_service_names[count.index]}"
   cluster         = "${aws_ecs_cluster.default.arn}"
   desired_count   = "${var.task_count}"
   launch_type     = "FARGATE"
-  task_definition = "${aws_ecs_task_definition.default.arn}"
+  task_definition = "${aws_ecs_task_definition.default.*.arn[count.index]}"
 
   network_configuration {
-    security_groups  = ["${aws_security_group.ecs_tasks.id}"]
+    security_groups  = ["${aws_security_group.ecs_tasks.*.id[count.index]}"]
     subnets          = ["${aws_subnet.private.*.id}"]
     assign_public_ip = true
   }
 
   load_balancer {
-    container_name   = "${data.template_file.container_definition.vars.name}"
-    container_port   = "${data.template_file.container_definition.vars.port}"
-    target_group_arn = "${aws_alb_target_group.default.arn}"
+    container_name   = "${local.ecs_container_names[count.index]}"
+    container_port   = "${var.service_port}"
+    target_group_arn = "${aws_alb_target_group.default.*.arn[count.index]}"
   }
 }
