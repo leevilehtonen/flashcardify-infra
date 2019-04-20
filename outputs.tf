@@ -13,3 +13,7 @@ output "ecs_service_names" {
 output "ecs_container_names" {
   value = "${local.ecs_container_names}"
 }
+
+output "lb_endpoints" {
+  value = "${aws_alb.default.*.dns_name}"
+}

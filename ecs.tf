@@ -12,9 +12,14 @@ data "template_file" "container_definition" {
   count    = "${length(var.services)}"
 
   vars {
-    name  = "${local.ecs_container_names[count.index]}"
-    port  = "${var.service_port}"
-    image = "${aws_ecr_repository.default.*.repository_url[count.index]}"
+    name             = "${local.ecs_container_names[count.index]}"
+    port             = "${var.service_port}"
+    image            = "${aws_ecr_repository.default.*.repository_url[count.index]}"
+    db_host          = "${aws_db_instance.default.address}"
+    db_database      = "${aws_db_instance.default.name}"
+    db_user          = "postgres"
+    db_port          = "${aws_db_instance.default.port}"
+    db_password_from = "${aws_ssm_parameter.db_password.arn}"
 
     //image     = "nginxdemos/hello"
     cpu       = "${var.fargate_cpu}"
@@ -31,7 +36,7 @@ resource "aws_ecs_task_definition" "default" {
   cpu                      = "${var.fargate_cpu}"
   memory                   = "${var.fargate_memory}"
   execution_role_arn       = "${aws_iam_role.task_execution.id}"
-  container_definitions    = "${data.template_file.container_definition.*.rendered[count.index]}"
+  container_definitions    = "${element(data.template_file.container_definition.*.rendered, count.index)}"
 }
 
 resource "aws_ecs_service" "default" {

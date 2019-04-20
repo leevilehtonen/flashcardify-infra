@@ -143,3 +143,27 @@ resource "aws_security_group" "ecs_tasks" {
     Env  = "${terraform.workspace}"
   }
 }
+
+resource "aws_security_group" "rds" {
+  name   = "${var.project_name}-rds-sg-${terraform.workspace}"
+  vpc_id = "${aws_vpc.default.id}"
+
+  ingress {
+    protocol        = "6"
+    from_port       = 5432
+    to_port         = 5432
+    security_groups = ["${aws_security_group.ecs_tasks.id}"]
+  }
+
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "${var.project_name}-rds-sg-${terraform.workspace}"
+    Env  = "${terraform.workspace}"
+  }
+}

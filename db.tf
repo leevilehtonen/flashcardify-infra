@@ -9,11 +9,12 @@ resource "aws_db_instance" "default" {
   instance_class              = "db.t2.micro"
   identifier                  = "${var.project_name}-rds-${terraform.workspace}"
   username                    = "postgres"
-  password                    = "${aws_ssm_parameter.password.value}"
-  name                        = "${var.project_name}"
+  password                    = "${aws_ssm_parameter.db_password.value}"
+  name                        = "${var.project_name}db${terraform.workspace}"
   storage_encrypted           = false
   storage_type                = "gp2"
   skip_final_snapshot         = true
+  vpc_security_group_ids      = ["${aws_security_group.rds.id}"]
 
   tags {
     Name = "${var.project_name}-rds-${terraform.workspace}"
@@ -36,7 +37,7 @@ resource "random_string" "password" {
   special = false
 }
 
-resource "aws_ssm_parameter" "password" {
+resource "aws_ssm_parameter" "db_password" {
   name        = "${local.ssm_db_password_name}"
   description = "Master password for RDS"
   type        = "SecureString"
